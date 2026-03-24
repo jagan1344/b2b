@@ -38,6 +38,12 @@ jobs:
         npx prisma generate
         npx prisma migrate reset --force --skip-seed
         npm test
+        # Start backend in background for E2E tests
+        npm run dev & 
+        
+    - name: Wait for Backend
+      run: |
+        timeout 60s bash -c 'until curl -s http://localhost:5000/api/health; do sleep 2; done'
 
     - name: Run Frontend Tests
       run: npm test
