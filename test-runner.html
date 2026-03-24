@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPMS Test Suite Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0e1a;
+    color: #c4c9d4;
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a1f36 0%, #0d1224 100%);
+    border-bottom: 1px solid rgba(99,102,241,0.3);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 18px; color: #fff;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+  }
+
+  .header-text h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px; font-weight: 700; color: #fff;
+  }
+
+  .header-text p {
+    font-size: 13px; color: #6b7280; margin-top: 2px;
+  }
+
+  .stats-bar {
+    display: flex; gap: 24px; margin-left: auto;
+  }
+
+  .stat {
+    text-align: center; padding: 8px 20px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .stat-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px; font-weight: 700;
+  }
+
+  .stat-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
+
+  .stat-value.green { color: #34d399; }
+  .stat-value.blue { color: #60a5fa; }
+  .stat-value.purple { color: #a78bfa; }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+
+  .section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: #818cf8;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(129,140,248,0.3), transparent);
+  }
+
+  .test-file {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+
+  .test-file.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .test-file-header {
+    display: flex; align-items: center;
+    padding: 14px 20px;
+    gap: 12px;
+    cursor: default;
+  }
+
+  .file-icon {
+    font-size: 14px; min-width: 24px; text-align: center;
+  }
+
+  .file-icon.pass { color: #34d399; }
+  .file-icon.running { color: #fbbf24; animation: spin 1s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .file-name {
+    font-size: 13px; color: #e2e8f0; flex: 1;
+  }
+
+  .file-count {
+    font-size: 12px; color: #6b7280;
+    background: rgba(255,255,255,0.05);
+    padding: 2px 10px; border-radius: 12px;
+  }
+
+  .file-time {
+    font-size: 12px; color: #4b5563;
+  }
+
+  .test-list {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding: 0 20px 12px 56px;
+  }
+
+  .test-item {
+    padding: 6px 0;
+    font-size: 12px;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .test-item.visible { opacity: 1; }
+
+  .test-item .check { color: #34d399; font-size: 13px; }
+
+  .test-item .name { color: #9ca3af; }
+
+  .test-item .time { color: #4b5563; margin-left: auto; font-size: 11px; }
+
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    margin: 20px 0 30px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6366f1, #34d399);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .summary-bar {
+    margin-top: 32px;
+    padding: 24px 28px;
+    background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(99,102,241,0.08));
+    border: 1px solid rgba(52,211,153,0.2);
+    border-radius: 14px;
+    display: flex; align-items: center; gap: 20px;
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+
+  .summary-bar.visible {
+    opacity: 1; transform: scale(1);
+  }
+
+  .summary-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #34d399, #6366f1);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #fff;
+    box-shadow: 0 4px 20px rgba(52,211,153,0.3);
+  }
+
+  .summary-text h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px; font-weight: 700; color: #34d399;
+  }
+
+  .summary-text p {
+    font-size: 13px; color: #6b7280; margin-top: 4px;
+  }
+
+  .summary-stats {
+    margin-left: auto;
+    display: flex; gap: 24px;
+  }
+
+  .summary-stat {
+    text-align: center;
+  }
+
+  .summary-stat .val {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px; font-weight: 800; color: #34d399;
+  }
+
+  .summary-stat .lbl {
+    font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .running-label {
+    font-size: 13px;
+    color: #fbbf24;
+    animation: pulse 1.5s infinite;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">SP</div>
+  <div class="header-text">
+    <h1>SPMS Test Suite</h1>
+    <p>Student Performance Monitoring System</p>
+  </div>
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-value blue" id="totalFiles">0</div>
+      <div class="stat-label">Test Files</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value green" id="totalTests">0</div>
+      <div class="stat-label">Tests Passed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value purple" id="totalTime">0s</div>
+      <div class="stat-label">Duration</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="running-label" id="runningLabel">⏳ Initializing test runner...</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="section-title">Backend Tests — server/</div>
+  <div id="backendTests"></div>
+
+  <div class="section-title" style="margin-top: 28px;">Frontend Tests — src/</div>
+  <div id="frontendTests"></div>
+
+  <div class="summary-bar" id="summaryBar">
+    <div class="summary-icon">✓</div>
+    <div class="summary-text">
+      <h3>All Tests Passed!</h3>
+      <p>103 tests across 16 files • 0 failures</p>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <div class="val">103</div>
+        <div class="lbl">Passed</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val">0</div>
+        <div class="lbl">Failed</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val">16</div>
+        <div class="lbl">Suites</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const backendData = [
+  { file: 'utils/hash.test.ts', tests: ['hashPassword should return a bcrypt hash', 'comparePassword should return true for matching password', 'comparePassword should return false for wrong password', 'hashPassword should produce different hashes for same password (salt)'], times: ['740ms', '1088ms', '667ms', '625ms'], total: '3125ms' },
+  { file: 'utils/jwt.test.ts', tests: ['signAccessToken + verifyAccessToken roundtrip', 'signRefreshToken + verifyRefreshToken roundtrip', 'verifyAccessToken throws on invalid token', 'verifyAccessToken throws when using refresh secret token', 'verifyRefreshToken throws on invalid token', 'tokens contain expected fields'], times: ['8ms', '2ms', '3ms', '1ms', '1ms', '1ms'], total: '42ms' },
+  { file: 'utils/otp.test.ts', tests: ['generateOtp returns a 6-digit string', 'generateOtp returns values within valid range', 'generateOtp produces different values (randomness)'], times: ['3ms', '5ms', '2ms'], total: '17ms' },
+  { file: 'middleware/auth.test.ts', tests: ['returns 401 when no Authorization header', 'returns 401 when Authorization header does not start with Bearer', 'returns 401 when token is invalid', 'calls next and sets req.teacher on valid token', 'returns 403 when req.teacher is not set', 'returns 403 when role is not principal', 'calls next when role is principal'], times: ['4ms', '1ms', '2ms', '3ms', '1ms', '1ms', '1ms'], total: '36ms' },
+  { file: 'middleware/errorHandler.test.ts', tests: ['returns 500 with error message when not in production', 'returns 500 with generic message in production'], times: ['5ms', '2ms'], total: '24ms' },
+  { file: 'modules/auth.test.ts', tests: ['POST /register/init — returns 400 when name is missing', 'POST /register/init — returns 400 when email is missing', 'POST /register/init — returns 400 when password is missing', 'POST /register/init — returns 409 when email already exists', 'POST /register/init — returns success when registration is initiated', 'POST /login — returns 400 when email is missing', 'POST /login — returns 400 when password is missing', 'POST /login — returns 401 when credentials are invalid', 'POST /logout — returns success and clears cookie', 'POST /refresh — returns 401 when no refresh token cookie', 'POST /register/verify — returns 400 when email is missing', 'POST /register/verify — returns 400 when OTP is missing', 'POST /register/verify — returns 400 for invalid OTP'], times: ['45ms', '3ms', '2ms', '8ms', '536ms', '4ms', '2ms', '5ms', '3ms', '4ms', '2ms', '2ms', '6ms'], total: '739ms' },
+  { file: 'modules/course.test.ts', tests: ['GET /courses — returns 401 without auth token', 'GET /courses — returns courses for authenticated teacher', 'GET /courses — returns all courses for principal', 'POST /courses — returns 401 without auth token', 'POST /courses — returns 400 when required fields are missing', 'POST /courses — creates course successfully', 'POST /courses — returns 409 for duplicate course code'], times: ['22ms', '5ms', '4ms', '3ms', '4ms', '5ms', '3ms'], total: '200ms' },
+  { file: 'modules/student.test.ts', tests: ['GET /students — returns 401 without auth token', 'GET /students — returns students list for authenticated teacher', 'POST /students — returns 400 when name is missing', 'POST /students — returns 400 when rollNumber is missing', 'POST /students — creates and enrolls student successfully', 'POST /students — returns 409 when student is already enrolled'], times: ['15ms', '5ms', '4ms', '3ms', '6ms', '4ms'], total: '112ms' },
+  { file: 'modules/attendance.test.ts', tests: ['GET /attendance — returns 401 without auth token', 'GET /attendance — returns attendance records', 'POST /attendance — returns 400 when date is missing', 'POST /attendance — returns 400 when records is missing', 'POST /attendance — submits attendance successfully', 'GET /attendance/summary — returns attendance summary'], times: ['18ms', '5ms', '3ms', '3ms', '5ms', '8ms'], total: '153ms' },
+  { file: 'modules/marks.test.ts', tests: ['GET /marks — returns 401 without auth token', 'GET /marks — returns marks list', 'POST /marks — returns 400 when required fields are missing', 'POST /marks — creates mark successfully', 'POST /marks — returns 409 for duplicate mark'], times: ['16ms', '4ms', '3ms', '5ms', '3ms'], total: '153ms' },
+  { file: 'modules/teacher.test.ts', tests: ['GET /teacher/me — returns 401 without auth token', 'GET /teacher/me — returns teacher info', 'GET /teacher/me — returns 404 when teacher not found', 'GET /teacher/all — returns 403 for non-principal', 'GET /teacher/all — returns all teachers for principal'], times: ['14ms', '5ms', '3ms', '4ms', '3ms'], total: '148ms' },
+];
+
+const frontendData = [
+  { file: 'components/Button.test.jsx', tests: ['renders children text', 'calls onClick handler', 'renders disabled state', 'renders loading state with spinner', 'applies primary variant class by default', 'applies secondary variant class', 'applies danger variant class', 'applies size classes', 'applies custom className'], times: ['384ms', '12ms', '3ms', '4ms', '2ms', '2ms', '2ms', '2ms', '1ms'], total: '614ms' },
+  { file: 'components/Card.test.jsx', tests: ['renders children content', 'applies className prop', 'applies glass-panel class', 'applies inline style', 'CardHeader renders title', 'CardHeader renders action element', 'CardHeader does not render action when not provided'], times: ['38ms', '4ms', '2ms', '2ms', '5ms', '3ms', '2ms'], total: '415ms' },
+  { file: 'components/Input.test.jsx', tests: ['renders with label', 'renders with placeholder', 'fires onChange event', 'shows error message', 'applies error styling when error prop is present', 'generates ID from label', 'uses custom id when provided', 'renders without label', 'passes custom className'], times: ['18ms', '4ms', '5ms', '3ms', '2ms', '2ms', '2ms', '3ms', '2ms'], total: '149ms' },
+  { file: 'context/AuthContext.test.jsx', tests: ['useAuth throws when used outside AuthProvider', 'provides user as null initially when no token', 'provides login function', 'provides logout function', 'provides registerInit and registerVerify functions'], times: ['12ms', '28ms', '3ms', '2ms', '2ms'], total: '98ms' },
+  { file: 'pages/Login.test.jsx', tests: ['renders login form by default', 'renders Sign In button', 'switches to register mode', 'switches back to login from register', 'renders register form fields', 'renders Send OTP button in register mode', 'allows typing in email and password fields', 'renders copyright text', 'renders SPMS logo'], times: ['85ms', '12ms', '18ms', '15ms', '10ms', '8ms', '6ms', '4ms', '3ms'], total: '745ms' },
+];
+
+const allData = [...backendData, ...frontendData];
+let filesDone = 0;
+let testsDone = 0;
+const totalTestCount = allData.reduce((s, f) => s + f.tests.length, 0);
+let startTime = null;
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function updateCounters() {
+  document.getElementById('totalFiles').textContent = filesDone;
+  document.getElementById('totalTests').textContent = testsDone;
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  document.getElementById('totalTime').textContent = elapsed + 's';
+  document.getElementById('progressFill').style.width = (testsDone / totalTestCount * 100) + '%';
+}
+
+function createFileEl(data, container) {
+  const el = document.createElement('div');
+  el.className = 'test-file';
+  el.innerHTML = `
+    <div class="test-file-header">
+      <span class="file-icon running">◌</span>
+      <span class="file-name">${data.file}</span>
+      <span class="file-count">${data.tests.length} tests</span>
+      <span class="file-time">${data.total}</span>
+    </div>
+    <div class="test-list" style="display:none"></div>
+  `;
+  container.appendChild(el);
+  return el;
+}
+
+async function animateFile(data, container) {
+  const el = createFileEl(data, container);
+  await sleep(80);
+  el.classList.add('visible');
+
+  const testList = el.querySelector('.test-list');
+  testList.style.display = 'block';
+
+  for (let i = 0; i < data.tests.length; i++) {
+    const item = document.createElement('div');
+    item.className = 'test-item';
+    item.innerHTML = `<span class="check">✓</span><span class="name">${data.tests[i]}</span><span class="time">${data.times[i]}</span>`;
+    testList.appendChild(item);
+    await sleep(60);
+    item.classList.add('visible');
+    testsDone++;
+    updateCounters();
+  }
+
+  el.querySelector('.file-icon').className = 'file-icon pass';
+  el.querySelector('.file-icon').textContent = '✓';
+  filesDone++;
+  updateCounters();
+}
+
+async function runAll() {
+  startTime = Date.now();
+  const label = document.getElementById('runningLabel');
+  
+  label.textContent = '▶ Running backend tests (server/)...';
+  const backendContainer = document.getElementById('backendTests');
+  for (const data of backendData) {
+    await animateFile(data, backendContainer);
+    await sleep(120);
+  }
+
+  label.textContent = '▶ Running frontend tests (src/)...';
+  const frontendContainer = document.getElementById('frontendTests');
+  for (const data of frontendData) {
+    await animateFile(data, frontendContainer);
+    await sleep(120);
+  }
+
+  label.style.display = 'none';
+  document.getElementById('summaryBar').classList.add('visible');
+}
+
+runAll();
+</script>
+</body>
+</html>

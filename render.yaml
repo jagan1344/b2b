@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: spms-app
+    runtime: node
+    plan: free # Change to starter/pro if needed
+    buildCommand: npm install && npm run build:prod
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/opt/render/project/src/server/prisma/dev.db # Path on Render with disk
+      - key: PORT
+        value: 10000
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://spms-app.onrender.com # Update this after first deploy
+    disk:
+      name: spms-data
+      mountPath: /opt/render/project/src/server/prisma
+      sizeGB: 1

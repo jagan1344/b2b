@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Teacher {
+  id           String             @id @default(uuid())
+  name         String
+  email        String             @unique
+  passwordHash String
+  role         String             @default("teacher") // "principal" or "teacher"
+  isVerified   Boolean            @default(false)
+  courses      CourseTeacher[]
+  marks        Mark[]
+  attendance   AttendanceRecord[]
+  refreshTokens RefreshToken[]
+  createdAt    DateTime           @default(now())
+}
+
+model OtpStore {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  otp       String
+  name      String
+  passwordHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  teacherId String
+  token     String   @unique
+  expiresAt DateTime
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id          String          @id @default(uuid())
+  name        String
+  code        String          @unique
+  description String?
+  semester    String
+  year        Int
+  teachers    CourseTeacher[]
+  enrollments Enrollment[]
+  subjects    Subject[]
+  attendance  AttendanceRecord[]
+  createdAt   DateTime        @default(now())
+}
+
+model CourseTeacher {
+  id        String  @id @default(uuid())
+  courseId   String
+  teacherId String
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  @@unique([courseId, teacherId])
+}
+
+model Student {
+  id          String             @id @default(uuid())
+  name        String
+  rollNumber  String             @unique
+  email       String?
+  phone       String?
+  enrollments Enrollment[]
+  marks       Mark[]
+  attendance  AttendanceRecord[]
+  createdAt   DateTime           @default(now())
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  studentId  String
+  courseId    String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt DateTime @default(now())
+  @@unique([studentId, courseId])
+}
+
+model Subject {
+  id       String  @id @default(uuid())
+  name     String
+  courseId  String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  marks    Mark[]
+}
+
+model Mark {
+  id        String   @id @default(uuid())
+  studentId String
+  subjectId String
+  teacherId String
+  score     Float
+  maxScore  Float
+  examType  String
+  student   Student  @relation(fields: [studentId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  enteredAt DateTime @default(now())
+  @@unique([studentId, subjectId, examType])
+}
+
+model AttendanceRecord {
+  id        String   @id @default(uuid())
+  studentId String
+  courseId   String
+  teacherId String
+  date      DateTime
+  status    String
+  student   Student  @relation(fields: [studentId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  @@unique([studentId, courseId, date])
+}
