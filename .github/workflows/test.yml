@@ -9,6 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./dev.db"
+      JWT_ACCESS_SECRET: "test_access_secret_for_ci_2026"
+      JWT_REFRESH_SECRET: "test_refresh_secret_for_ci_2026"
+      NODE_ENV: test
 
     steps:
     - uses: actions/checkout@v4
@@ -28,10 +33,6 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: Run Backend Tests
-      env:
-        DATABASE_URL: "file:./dev.db"
-        JWT_ACCESS_SECRET: "test_access_secret_for_ci_2026"
-        JWT_REFRESH_SECRET: "test_refresh_secret_for_ci_2026"
       run: |
         cd server
         npx prisma generate
