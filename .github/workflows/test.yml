@@ -28,7 +28,15 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: Run Backend Tests
-      run: cd server && npm test
+      env:
+        DATABASE_URL: "file:./dev.db"
+        JWT_ACCESS_SECRET: "test_access_secret_for_ci_2026"
+        JWT_REFRESH_SECRET: "test_refresh_secret_for_ci_2026"
+      run: |
+        cd server
+        npx prisma generate
+        npx prisma migrate reset --force --skip-seed
+        npm test
 
     - name: Run Frontend Tests
       run: npm test
