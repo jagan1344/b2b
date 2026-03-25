@@ -15,7 +15,7 @@
     "install:all": "npm install && npm install --prefix server",
     "clean:dist": "rimraf dist && rimraf server/dist",
     "build:prod": "npm run clean:dist && vite build && npm run build --prefix server",
-    "start": "node server/dist/index.js",
+    "start": "npm start --prefix server",
     "test": "vitest run --config vitest.config.test.js",
     "test:watch": "vitest --config vitest.config.test.js",
     "test:ui": "vitest --ui --config vitest.config.test.js"
