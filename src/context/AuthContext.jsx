@@ -27,12 +27,8 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const registerInit = async (name, email, password) => {
-    return authApi.registerInit({ name, email, password });
-  };
-
-  const registerVerify = async (email, otp) => {
-    const data = await authApi.registerVerify({ email, otp });
+  const registerDirect = async (name, email, password) => {
+    const data = await authApi.registerDirect({ name, email, password });
     setAccessToken(data.accessToken);
     setUser(data.teacher);
     return data;
@@ -45,7 +41,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, registerInit, registerVerify, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, registerDirect, logout }}>
       {children}
     </AuthContext.Provider>
   );

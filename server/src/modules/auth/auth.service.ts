@@ -30,6 +30,44 @@ export async function initiateRegistration(name: string, email: string, password
   };
 }
 
+export async function registerDirect(name: string, email: string, password: string) {
+  // Check if teacher already exists
+  const existing = await prisma.teacher.findUnique({ where: { email } });
+  if (existing) throw new Error('EMAIL_EXISTS');
+
+  const passwordHash = await hashPassword(password);
+
+  // Create teacher account directly
+  const teacher = await prisma.teacher.create({
+    data: {
+      name,
+      email,
+      passwordHash,
+      isVerified: true, // Auto-verify
+    },
+  });
+
+  // Generate tokens
+  const payload = { teacherId: teacher.id, role: teacher.role };
+  const accessToken = signAccessToken(payload);
+  const refreshTokenValue = signRefreshToken(payload);
+
+  // Store refresh token
+  await prisma.refreshToken.create({
+    data: {
+      teacherId: teacher.id,
+      token: refreshTokenValue,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  return {
+    accessToken,
+    refreshToken: refreshTokenValue,
+    teacher: { id: teacher.id, name: teacher.name, email: teacher.email, role: teacher.role },
+  };
+}
+
 export async function verifyRegistration(email: string, otp: string) {
   const record = await prisma.otpStore.findUnique({ where: { email } });
   if (!record || record.otp !== otp || record.expiresAt < new Date()) {

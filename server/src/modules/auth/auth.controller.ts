@@ -19,6 +19,35 @@ export async function registerInit(req: Request, res: Response) {
   }
 }
 
+export async function registerDirect(req: Request, res: Response) {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      res.status(400).json({ error: 'Name, email, and password are required.' });
+      return;
+    }
+    
+    // Use the direct registration service
+    const result = await authService.registerDirect(name, email, password);
+    
+    // Set refresh token as httpOnly cookie
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    
+    res.json({ accessToken: result.accessToken, teacher: result.teacher });
+  } catch (err: any) {
+    if (err.message === 'EMAIL_EXISTS') {
+      res.status(409).json({ error: 'An account with this email already exists.' });
+      return;
+    }
+    res.status(500).json({ error: err.message });
+  }
+}
+
 export async function registerVerify(req: Request, res: Response) {
   try {
     const { email, otp } = req.body;

@@ -75,6 +75,7 @@ async function refreshToken() {
 export const auth = {
   registerInit: (body) => request('/auth/register/init', { method: 'POST', body: JSON.stringify(body) }),
   registerVerify: (body) => request('/auth/register/verify', { method: 'POST', body: JSON.stringify(body) }),
+  registerDirect: (body) => request('/auth/register/direct', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   logout: () => request('/auth/logout', { method: 'POST' }),
 };

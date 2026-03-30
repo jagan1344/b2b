@@ -8,12 +8,11 @@ import { Lock, Mail, ChevronRight, User, ArrowLeft } from 'lucide-react';
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { login, registerInit, registerVerify } = useAuth();
-  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'otp'
+  const { login, registerDirect } = useAuth();
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [otp, setOtp] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -34,21 +33,7 @@ export const Login = () => {
     setLoading(true);
     setError('');
     try {
-      await registerInit(form.name, form.email, form.password);
-      setMode('otp');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      await registerVerify(form.email, otp);
+      await registerDirect(form.name, form.email, form.password);
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -68,10 +53,10 @@ export const Login = () => {
             <span className="text-2xl font-bold text-white tracking-wider">SP</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            {mode === 'login' ? 'Welcome Back' : mode === 'register' ? 'Create Account' : 'Verify Email'}
+            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
           </h1>
           <p className="text-gray-400">
-            {mode === 'login' ? 'Sign in to your dashboard' : mode === 'register' ? 'Register as a teacher or principal' : `Enter the OTP sent to ${form.email}`}
+            {mode === 'login' ? 'Sign in to your dashboard' : 'Register as a teacher or principal'}
           </p>
         </div>
 
@@ -117,31 +102,11 @@ export const Login = () => {
                 <Input label="Password" type="password" placeholder="Min 6 characters" className="text-white pl-10 py-3" containerClassName="mb-0" style={{ backgroundColor: 'rgba(15,23,42,0.5)', borderColor: '#374151' }} value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
               </div>
               <Button type="submit" className="w-full py-3 border-none group" isLoading={loading} style={{ background: 'linear-gradient(to right, #4f46e5, #ec4899)' }}>
-                {!loading && <>Send OTP <ChevronRight className="w-4 h-4 ml-2" /></>}
+                {!loading && <>Register & Continue <ChevronRight className="w-4 h-4 ml-2" /></>}
               </Button>
               <p className="text-center text-sm text-gray-400">
                 <button type="button" className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 mx-auto" onClick={() => { setMode('login'); setError(''); }}>
                   <ArrowLeft className="w-4 h-4" /> Back to login
-                </button>
-              </p>
-            </form>
-          )}
-
-          {mode === 'otp' && (
-            <form onSubmit={handleVerifyOtp} className="space-y-5 flex flex-col">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(79,70,229,0.2)' }}>
-                  <Mail className="w-8 h-8 text-indigo-400" />
-                </div>
-                <p className="text-gray-300 text-sm">We sent a 6-digit code to <span className="text-white font-medium">{form.email}</span></p>
-              </div>
-              <Input placeholder="Enter 6-digit OTP" className="text-white text-center text-2xl tracking-widest py-4 font-bold" containerClassName="mb-0" style={{ backgroundColor: 'rgba(15,23,42,0.5)', borderColor: '#374151', letterSpacing: '8px' }} value={otp} onChange={e => setOtp(e.target.value)} maxLength={6} />
-              <Button type="submit" className="w-full py-3 border-none" isLoading={loading} style={{ background: 'linear-gradient(to right, #4f46e5, #ec4899)' }}>
-                {!loading && 'Verify & Continue'}
-              </Button>
-              <p className="text-center text-sm text-gray-400">
-                <button type="button" className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 mx-auto" onClick={() => { setMode('register'); setError(''); }}>
-                  <ArrowLeft className="w-4 h-4" /> Change email
                 </button>
               </p>
             </form>
