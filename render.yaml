@@ -3,7 +3,7 @@ services:
     name: spms-app
     runtime: node
     plan: free # Change to starter/pro if needed
-    buildCommand: npm install && npm install --prefix server && npm run build:prod
+    buildCommand: npm install --include=dev && npm install --include=dev --prefix server && npm run build:prod
     startCommand: npm start
     envVars:
       - key: NODE_ENV
