@@ -9,7 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:/opt/render/project/src/server/prisma/dev.db # Path on Render with disk
+        value: file:./server/prisma/dev.db # Local path for free tier (no persistence)
       - key: PORT
         value: 10000
       - key: JWT_ACCESS_SECRET
@@ -18,7 +18,3 @@ services:
         generateValue: true
       - key: CLIENT_URL
         value: https://spms-app.onrender.com # Update this after first deploy
-    disk:
-      name: spms-data
-      mountPath: /opt/render/project/src/server/prisma
-      sizeGB: 1
