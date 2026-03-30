@@ -9,7 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:./server/prisma/dev.db # Local path for free tier (no persistence)
+        value: file:./prisma/dev.db # Relative to server directory
       - key: PORT
         value: 10000
       - key: JWT_ACCESS_SECRET
